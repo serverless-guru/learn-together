@@ -1,0 +1,23 @@
+service: serverless-log-forwarding-1
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: us-west-2
+  stage: ${opt:stage, "dev"}  # --stage <> || dev | test | prod | staging
+
+functions:
+  hello:
+    handler: handler.hello
+  # worker:
+  #   handler: worker.handler
+
+plugins:
+  - serverless-log-forwarding
+
+custom:
+  workerName: ${self:service}-${self:provider.stage}-log-worker
+  config: ${file(./config.${self:provider.stage}.yml)}  # TODO: Replace with your account id in config file
+  # Plugin code goes here
+  logForwarding:
+    destinationARN: arn:aws:lambda:${self:provider.region}:${self:custom.config.accountId}:function:worker-lambda
